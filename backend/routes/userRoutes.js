@@ -1,17 +1,15 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const User = require('../models/user.js'); // Importa o modelo de usuário
+const User = require('../models/user.js');
 const router = express.Router();
 
-const JWT_SECRET = 'seu-segredo-jwt'; // Use variáveis de ambiente em produção
+const JWT_SECRET = 'seu-segredo-jwt'; 
 
-// Criar um novo usuário
 router.post('/users', async (req, res) => {
   try {
     const { nome, email, senha } = req.body;
 
-    // Hash da senha antes de salvar
     const senhaHash = await bcrypt.hash(senha, 10);
     const novoUsuario = new User({ nome, email, senha: senhaHash });
 
@@ -22,7 +20,6 @@ router.post('/users', async (req, res) => {
   }
 });
 
-// Rota de login
 router.post('/login', async (req, res) => {
   const { email, senha } = req.body;
 
@@ -44,7 +41,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Listar todos os usuários
 router.get('/users', async (req, res) => {
   try {
     const usuarios = await User.find();
