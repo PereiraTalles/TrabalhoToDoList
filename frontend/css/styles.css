@@ -29,6 +29,18 @@
     transition: 0.4s;
   }
   
+  .btn.btn-success.btn-lg.mx-2,
+  .btn.btn-primary.btn-lg.mx-2{
+    --bs-btn-bg: #102f5e;
+    --bs-btn-hover-color: #102f5e;
+    --bs-btn-hover-bg: #fff;
+  }
+  #but_entar,
+  #but_cad{
+    --bs-btn-bg: #102f5e;
+    --bs-btn-hover-color: #102f5e;
+    --bs-btn-hover-bg: #fff;
+  }
   button:hover {
     background-color: #102f5e;
   }
