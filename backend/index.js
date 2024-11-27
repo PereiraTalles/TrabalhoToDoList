@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -9,7 +10,7 @@ app.use(express.json());
 
 app.use(cors());
 
-mongoose.connect('mongodb+srv://Talles:0312@cluster0.jmpbk.mongodb.net/todoapp?retryWrites=true&w=majority')
+mongoose.connect(process.env.DATABASE_URL)
   .then(() => {
     console.log('Conectado ao MongoDB');
   })
@@ -19,7 +20,9 @@ mongoose.connect('mongodb+srv://Talles:0312@cluster0.jmpbk.mongodb.net/todoapp?r
 
 app.use('/api', userRoutes);
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+// usar o valor do process.env, ou 3000 se não for definido
+
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });

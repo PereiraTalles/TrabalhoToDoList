@@ -1,10 +1,11 @@
+require('dotenv').config()
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.js');
 const router = express.Router();
 
-const JWT_SECRET = 'seu-segredo-jwt'; 
+const JWT_SECRET = process.env.SECRET;
 
 router.post('/users', async (req, res) => {
   try {
