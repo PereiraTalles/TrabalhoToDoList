@@ -52,11 +52,11 @@
         const response = await axios.post('http://localhost:3000/api/login', { email, senha });
         
         if (response.status === 200) {
-          // Salva o token no localStorage
+          
           localStorage.setItem('token', response.data.token);
 
           alert('Login bem-sucedido!');
-          window.location.href = 'admin.html';  // Redireciona para a página administrativa
+          window.location.href = 'admin.html';
         }
       } catch (error) {
         alert('Erro no login: ' + (error.response?.data?.error || 'Tente novamente.'));
