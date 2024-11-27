@@ -26,9 +26,9 @@
             <input type="password" class="form-control" id="password" placeholder="Digite sua senha" required>
           </div>
           <div class="d-grid">
-            <button type="submit" class="btn btn-success" id="but_entar">Entrar</button>
+            <button type="submit" class="btn btn-success">Entrar</button>
           </div>
-        </form>        
+        </form>
         <div class="text-center mt-3">
           <a href="inicio.html" class="btn btn-link">Voltar</a>
         </div>
@@ -40,33 +40,28 @@
     <p>&copy; 2024 To-Do List. Todos os direitos reservados.</p>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script> 
-        document.querySelector('#login-form').addEventListener('submit', async (event) => {
-  event.preventDefault(); // Impede o recarregamento da página
-  
-  const email = document.querySelector('#email').value;
-  const senha = document.querySelector('#password').value; // Corrigido para usar '#password'
-  
-  try {
-    // Envia os dados para o back-end
-    const response = await axios.post('http://localhost:3000/api/login', {
-      email,
-      senha,
+  <script>
+    document.querySelector('#login-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const email = document.querySelector('#email').value;
+      const senha = document.querySelector('#password').value;
+
+      try {
+        const response = await axios.post('http://localhost:3000/api/login', { email, senha });
+        
+        if (response.status === 200) {
+          // Salva o token no localStorage
+          localStorage.setItem('token', response.data.token);
+
+          alert('Login bem-sucedido!');
+          window.location.href = 'admin.html';  // Redireciona para a página administrativa
+        }
+      } catch (error) {
+        alert('Erro no login: ' + (error.response?.data?.error || 'Tente novamente.'));
+      }
     });
-  
-    if (response.status === 200) {
-      // Login bem-sucedido, redireciona para a página de administração
-      window.location.href = 'admin.html';
-    }
-  } catch (error) {
-    // Exibe uma mensagem de erro
-    alert('Erro no login: ' + (error.response?.data?.error || 'Tente novamente.'));
-  }
-});
-
   </script>
-
 </body>
 </html>
