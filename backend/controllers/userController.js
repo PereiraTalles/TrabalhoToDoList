@@ -143,8 +143,8 @@ exports.edit = [
 
 exports.delete = async(req, res, next) => {
     try {
-        const user = await User.findByIdAndDelete(req.user.id).select('-password')
-        await Todo.deleteMany({author: req.user.id})
+        const user = await User.findByIdAndDelete(req.params.userId).select('-password')
+        await Todo.deleteMany({author: req.params.userId})
 
         return res.status(200).json({message: 'Usuário apagado', user})
     } catch (err) {

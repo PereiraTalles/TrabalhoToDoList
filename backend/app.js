@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 mongoose.set('strictQuery', 'false')
 
 main()
-.then(() => {
+.then(async() => {
     console.log('Conectado ao mongoDB')
 })
 .catch((err) => console.log('Erro ao conectar ao mongoDB: ', err));
@@ -46,9 +46,7 @@ app.use((err, req, res, next) => {
     ...err
   };
 
-  if (process.env.NODE_ENV === 'development') {
-    console.error(error)
-  }
+  console.log(err)
 
   res.status(statusCode).json(error)
 });

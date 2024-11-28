@@ -16,6 +16,9 @@ router.put('/:todoId', validateToken, controller.edit)
 // Marcar uma todo como completa ou incompleta
 router.put('/:todoId/done', validateToken, controller.toggleDone)
 
+// apaga todas as todos
+router.delete('/clear', validateToken, controller.clear)
+
 // Deletar todo de ID específico
 router.delete('/:todoId', validateToken, controller.delete)
 

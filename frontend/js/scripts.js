@@ -1,250 +1,178 @@
-const todoForm = document.querySelector("#todo-form")
-const todoInput = document.querySelector("#todo-input")
-const todoList = document.querySelector("#todo-list")
-const editForm = document.querySelector("#edit-form")
-const editInput = document.querySelector("#edit-input")
-const cancelEditBtn = document.querySelector("#cancel-edit-btn")
-const searchInput = document.querySelector("#search-input")
-const eraseBtn = document.querySelector("#erase-button")
-const filterBtn = document.querySelector("#filter-select")
+const todoForm = document.querySelector("#todo-form");
+const todoInput = document.querySelector("#todo-input");
+const todoList = document.querySelector("#todo-list");
+const editForm = document.querySelector("#edit-form");
+const editInput = document.querySelector("#edit-input");
+const cancelEditBtn = document.querySelector("#cancel-edit-btn");
 const clearStorageBtn = document.querySelector("#clear-storage-btn")
 
-let oldInputValue
+let currentTodoId = null; // Armazena o ID da tarefa em edição
 
-const saveTodo = (text, done = 0, save = 1) => {
-  const todo = document.createElement("div")
-  todo.classList.add("todo")
+// Instância Axios com autenticação
+const api = axios.create({
+  baseURL: "http://localhost:3000/todo",
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+  },
+});
 
-  const todoTitle = document.createElement("h3")
-  todoTitle.innerText = text
-  todo.appendChild(todoTitle)
+// Carregar tarefas do backend
+const loadTodos = async () => {
+  try {
+    const response = await api.get("/list");
+    const todos = response.data;
+    todoList.innerHTML = ""; // Limpa a lista antes de recarregar
 
-  const doneBtn = document.createElement("button")
-  doneBtn.classList.add("finish-todo")
-  doneBtn.innerHTML = '<i class="fa-solid fa-check"></i>'
-  todo.appendChild(doneBtn)
+    todos.forEach((todo) => {
+      addTodoToDOM(todo); // Adiciona cada tarefa à interface
+    });
+  } catch (error) {
+    console.error("Erro ao carregar as tarefas:", error.response?.data || error.message);
+  }
+};
 
-  const editBtn = document.createElement("button")
-  editBtn.classList.add("edit-todo")
-  editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>'
-  todo.appendChild(editBtn)
+// Adicionar uma tarefa ao DOM
+const addTodoToDOM = (todo) => {
+  const todoEl = document.createElement("div");
+  todoEl.classList.add("todo");
+  todoEl.dataset.id = todo._id; // Inclui o ID da tarefa no elemento
 
-  const deleteBtn = document.createElement("button")
-  deleteBtn.classList.add("remove-todo")
-  deleteBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>'
-  todo.appendChild(deleteBtn)
-
-  if (done) {
-    todo.classList.add("done")
+  if (todo.done) {
+    todoEl.classList.add("done");
   }
 
-  if (save) {
-    saveTodoLocalStorage({ text, done: 0 })
+  const todoTitle = document.createElement("h3");
+  todoTitle.innerText = todo.title;
+  todoEl.appendChild(todoTitle);
+
+  const doneBtn = document.createElement("button");
+  doneBtn.classList.add("finish-todo");
+  doneBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+  todoEl.appendChild(doneBtn);
+
+  const editBtn = document.createElement("button");
+  editBtn.classList.add("edit-todo");
+  editBtn.innerHTML = '<i class="fa-solid fa-pen"></i>';
+  todoEl.appendChild(editBtn);
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.classList.add("remove-todo");
+  deleteBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+  todoEl.appendChild(deleteBtn);
+
+  todoList.appendChild(todoEl);
+};
+
+// Criar uma nova tarefa
+const createTodo = async (title) => {
+  try {
+    const response = await api.post("/", { title });
+    addTodoToDOM(response.data); // Adiciona a nova tarefa ao DOM
+  } catch (error) {
+    console.error("Erro ao criar a tarefa:", error.response?.data || error.message);
   }
+};
 
-  todoList.appendChild(todo)
+// Alternar o status de conclusão de uma tarefa
+const toggleTodoStatus = async (todoId, todoEl) => {
+  try {
+    await api.put(`/${todoId}/done`);
+    todoEl.classList.toggle("done");
+  } catch (error) {
+    console.error("Erro ao alternar status da tarefa:", error.response?.data || error.message);
+  }
+};
 
-  todoInput.value = ""
-}
+// Deletar uma tarefa
+const deleteTodo = async (todoId, todoEl) => {
+  try {
+    await api.delete(`/${todoId}`);
+    todoEl.remove(); // Remove a tarefa do DOM
+  } catch (error) {
+    console.error("Erro ao deletar a tarefa:", error.response?.data || error.message);
+  }
+};
 
+// Atualizar uma tarefa
+const updateTodo = async (todoId, newTitle) => {
+  try {
+    const response = await api.put(`/${todoId}`, { title: newTitle });
+    const todoEl = document.querySelector(`.todo[data-id="${todoId}"]`);
+    todoEl.querySelector("h3").innerText = response.data.title;
+  } catch (error) {
+    console.error("Erro ao atualizar a tarefa:", error.response?.data || error.message);
+  }
+};
+
+// Alternar formulários
 const toggleForms = () => {
-  editForm.classList.toggle("hide")
-  todoForm.classList.toggle("hide")
-  todoList.classList.toggle("hide")
-}
+  editForm.classList.toggle("hide");
+  todoForm.classList.toggle("hide");
+  todoList.classList.toggle("hide");
+};
 
-const updateTodo = (text) => {
-  const todos = document.querySelectorAll(".todo")
-
-  todos.forEach((todo) => {
-    let todoTitle = todo.querySelector("h3")
-
-    if (todoTitle.innerText === oldInputValue) {
-      todoTitle.innerText = text
-
-      updateTodoLocalStorage(oldInputValue, text)
-    }
-  })
-}
-
-const getSearchedTodos = (search) => {
-  const todos = document.querySelectorAll(".todo")
-
-  todos.forEach((todo) => {
-    const todoTitle = todo.querySelector("h3").innerText.toLowerCase()
-
-    todo.style.display = "flex"
-
-    console.log(todoTitle)
-
-    if (!todoTitle.includes(search)) {
-      todo.style.display = "none"
-    }
-  })
-}
-
-const filterTodos = (filterValue) => {
-  const todos = document.querySelectorAll(".todo")
-
-  switch (filterValue) {
-    case "all":
-      todos.forEach((todo) => (todo.style.display = "flex"))
-
-      break
-
-    case "done":
-      todos.forEach((todo) =>
-        todo.classList.contains("done")
-          ? (todo.style.display = "flex")
-          : (todo.style.display = "none")
-      )
-
-      break
-
-    case "todo":
-      todos.forEach((todo) =>
-        !todo.classList.contains("done")
-          ? (todo.style.display = "flex")
-          : (todo.style.display = "none")
-      )
-
-      break
-
-    default:
-      break
-  }
-}
-
+// Eventos
 todoForm.addEventListener("submit", (e) => {
-  e.preventDefault()
+  e.preventDefault();
+  const title = todoInput.value.trim();
 
-  const inputValue = todoInput.value
-
-  if (inputValue) {
-    saveTodo(inputValue)
+  if (title) {
+    createTodo(title);
+    todoInput.value = ""; // Limpa o campo de entrada
   }
-})
+});
 
 document.addEventListener("click", (e) => {
-  const targetEl = e.target
-  const parentEl = targetEl.closest("div")
-  let todoTitle
+  const targetEl = e.target;
+  const parentEl = targetEl.closest(".todo");
 
-  if (parentEl && parentEl.querySelector("h3")) {
-    todoTitle = parentEl.querySelector("h3").innerText || ""
+  if (parentEl) {
+    const todoId = parentEl.dataset.id;
+
+    // Alternar status de conclusão
+    if (targetEl.classList.contains("finish-todo")) {
+      toggleTodoStatus(todoId, parentEl);
+    }
+
+    // Editar tarefa
+    if (targetEl.classList.contains("edit-todo")) {
+      currentTodoId = todoId; // Armazena o ID da tarefa sendo editada
+      editInput.value = parentEl.querySelector("h3").innerText;
+      toggleForms();
+    }
+
+    // Deletar tarefa
+    if (targetEl.classList.contains("remove-todo")) {
+      deleteTodo(todoId, parentEl);
+    }
   }
-
-  if (targetEl.classList.contains("finish-todo")) {
-    parentEl.classList.toggle("done")
-
-    updateTodoStatusLocalStorage(todoTitle)
-  }
-
-  if (targetEl.classList.contains("remove-todo")) {
-    parentEl.remove()
-
-    removeTodoLocalStorage(todoTitle)
-  }
-
-  if (targetEl.classList.contains("edit-todo")) {
-    toggleForms()
-
-    editInput.value = todoTitle
-    oldInputValue = todoTitle
-  }
-})
-
-cancelEditBtn.addEventListener("click", (e) => {
-  e.preventDefault()
-  toggleForms()
-})
+});
 
 editForm.addEventListener("submit", (e) => {
-  e.preventDefault()
+  e.preventDefault();
+  const newTitle = editInput.value.trim();
 
-  const editInputValue = editInput.value
-
-  if (editInputValue) {
-    updateTodo(editInputValue)
+  if (newTitle && currentTodoId) {
+    updateTodo(currentTodoId, newTitle);
+    toggleForms();
   }
+});
 
-  toggleForms()
-})
+cancelEditBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  toggleForms();
+});
 
-searchInput.addEventListener("keyup", (e) => {
-  const search = e.target.value
+clearStorageBtn.addEventListener("click", async () => {
+  if (confirm("Tem certeza de que deseja apagar todas as tarefas?")) {
+    try {
+      await api.delete("/clear"); // Chama a rota da API para limpar todas as tarefas
+    } catch (error) {
+      console.error("Erro ao apagar todas as tarefas:", error.response?.data || error.message);
+      alert("Erro ao tentar apagar as tarefas. Por favor, tente novamente.");
+    }
+  }
+});
 
-  getSearchedTodos(search)
-})
-
-eraseBtn.addEventListener("click", (e) => {
-  e.preventDefault()
-
-  searchInput.value = ""
-
-  searchInput.dispatchEvent(new Event("keyup"))
-})
-
-filterBtn.addEventListener("change", (e) => {
-  const filterValue = e.target.value
-
-  filterTodos(filterValue)
-})
-
-const getTodosLocalStorage = () => {
-  const todos = JSON.parse(localStorage.getItem("todos")) || []
-
-  return todos
-}
-
-const loadTodos = () => {
-  const todos = getTodosLocalStorage()
-
-  todos.forEach((todo) => {
-    saveTodo(todo.text, todo.done, 0)
-  })
-}
-
-const saveTodoLocalStorage = (todo) => {
-  const todos = getTodosLocalStorage()
-
-  todos.push(todo)
-
-  localStorage.setItem("todos", JSON.stringify(todos))
-}
-
-const removeTodoLocalStorage = (todoText) => {
-  const todos = getTodosLocalStorage()
-
-  const filteredTodos = todos.filter((todo) => todo.text != todoText)
-
-  localStorage.setItem("todos", JSON.stringify(filteredTodos))
-}
-
-const updateTodoStatusLocalStorage = (todoText) => {
-  const todos = getTodosLocalStorage()
-
-  todos.map((todo) =>
-    todo.text === todoText ? (todo.done = !todo.done) : null
-  )
-
-  localStorage.setItem("todos", JSON.stringify(todos))
-}
-
-const updateTodoLocalStorage = (todoOldText, todoNewText) => {
-  const todos = getTodosLocalStorage()
-
-  todos.map((todo) =>
-    todo.text === todoOldText ? (todo.text = todoNewText) : null
-  )
-
-  localStorage.setItem("todos", JSON.stringify(todos))
-}
-
-clearStorageBtn.addEventListener("click", () => {
-  localStorage.clear()
-  todoList.innerHTML = "" 
-  alert("Local Storage limpo e lista resetada!")
-})
-
-loadTodos()
+// Carregar tarefas ao iniciar
+loadTodos();

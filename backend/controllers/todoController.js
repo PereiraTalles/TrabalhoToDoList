@@ -20,9 +20,7 @@ exports.list = async(req, res, next) => {
 exports.create = [
     body('title')
         .isString()
-        .withMessage('Título precisa ser uma string')
-        .isLength({ min: 4, max: 50 })
-        .withMessage('Título precisa ter entre 4 e 50 caracteres'),
+        .withMessage('Título precisa ser uma string'),
 
     body('description')
         .optional()
@@ -40,6 +38,7 @@ exports.create = [
             });
 
             const user = await User.findById(req.user.id);
+
             user.todos.push(todo);
             await user.save();
 
@@ -52,19 +51,16 @@ exports.create = [
 
 
 exports.edit = [
-    body('name')
+    body('title')
     .isString()
-    .withMessage('Nome precisa ser string')
-    .trim()
-    .isLength({min: 4, max: 50})
-    .withMessage('Nome precisa ter entre 4 e 50 caracteres'),
+    .withMessage('Título precisa ser string')
+    .trim(),
 
     body('description')
+    .optional()
     .isString()
     .withMessage('Descrição precisa ser string')
-    .trim()
-    .isLength({min: 1, max: 200})
-    .withMessage('Descrição precisa ter entre 1 e 200 caracteres'),
+    .trim(),
 
     validateInputs,
 
@@ -115,3 +111,13 @@ exports.toggleDone = async (req, res, next) => {
         next(err);
     }
 };
+
+exports.clear = async (req, res, next) => {
+    try {
+        await Todo.deleteMany({author: req.user.id})
+
+        return res.status(200);
+    } catch (err) {
+        next(err)
+    }
+}

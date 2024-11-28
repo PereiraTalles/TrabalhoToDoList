@@ -1,5 +1,6 @@
 require('dotenv').config()
 const jwt = require('jsonwebtoken')
+const User = require('../models/user')
 
 function validateToken(req, res, next) {
     const token = req.headers['authorization']?.split(' ')[1];
@@ -9,14 +10,16 @@ function validateToken(req, res, next) {
         throw error;
     }
 
-    jwt.verify(token, process.env.SECRET, (err, user) => {
+    jwt.verify(token, process.env.SECRET, async(err, userData) => {
         if (err) {
             const error = new Error('Erro ao verificar token')
             error.statusCode = 400;
             throw error;
         }
-        
-        req.user = user; // attach decoded user info to the request
+
+        const usuario = await User.findById(userData.id);
+
+        req.user = usuario; // attach decoded user info to the request
         next();
     });
 }

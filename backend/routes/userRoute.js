@@ -16,7 +16,7 @@ router.get('/list', controller.list)
 // Editar usuário (requer autorização, apenas o próprio usuário pode editar seu nome)
 router.put('/', validateToken, controller.edit)
 
-// Apaga o usuário autenticado e todas as suas tarefas
-router.delete('/', validateToken, controller.delete)
+// Apaga o usuário e todas as suas tarefas
+router.delete('/:userId', validateToken, controller.delete)
 
 module.exports = router;
