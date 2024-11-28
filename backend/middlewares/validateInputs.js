@@ -9,7 +9,7 @@ exports.validateInputs = async function(req, res, next) {
             error.statusCode = 400;
             error.details = errors.array();
 
-            return next(error);
+            throw error;
         }
 
         next();

@@ -43,6 +43,9 @@
     const loadUsers = async () => {
       try {
         const token = localStorage.getItem('authToken');
+
+        if (!token) window.location = '/frontend/inicio.html'
+        
         const response = await axios.get('http://localhost:3000/user/list', {
           headers: { Authorization: `Bearer ${token}` },
         });

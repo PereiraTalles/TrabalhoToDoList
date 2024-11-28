@@ -8,11 +8,15 @@ const clearStorageBtn = document.querySelector("#clear-storage-btn")
 
 let currentTodoId = null; // Armazena o ID da tarefa em edição
 
+const token = localStorage.getItem('authToken');
+
+if (!token) window.location = '/frontend/inicio.html'
+
 // Instância Axios com autenticação
 const api = axios.create({
   baseURL: "http://localhost:3000/todo",
   headers: {
-    Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+    Authorization: `Bearer ${token}`,
   },
 });
 

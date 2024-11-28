@@ -1,27 +1,31 @@
-require('dotenv').config()
-const jwt = require('jsonwebtoken')
-const User = require('../models/user')
+require('dotenv').config();
+const jwt = require('jsonwebtoken');
+const User = require('../models/user');
 
-function validateToken(req, res, next) {
-    const token = req.headers['authorization']?.split(' ')[1];
+async function validateToken(req, res, next) {
+    const token = req.headers['authorization']?.split(' ')[1]; // Obtém o token do header
+
     if (!token) {
-        const error = new Error('Autenticação é requirida')
-        error.statusCode = 401;
-        throw error;
+        return res.status(401).json({ message: 'Autenticação é requerida' });
     }
 
-    jwt.verify(token, process.env.SECRET, async(err, userData) => {
-        if (err) {
-            const error = new Error('Erro ao verificar token')
-            error.statusCode = 400;
-            throw error;
-        }
+    try {
+        // Decodifica e verifica o token
+        const userData = jwt.verify(token, process.env.SECRET);
 
+        // Busca o usuário no banco de dados
         const usuario = await User.findById(userData.id);
 
-        req.user = usuario; // attach decoded user info to the request
-        next();
-    });
+        if (!usuario) {
+            return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+
+        req.user = usuario; // Anexa as informações do usuário à requisição
+        next(); // Prossegue para o próximo middleware/rota
+    } catch (err) {
+        console.error('Erro ao validar o token:', err.message);
+        return res.status(400).json({ message: 'Token inválido ou expirado' });
+    }
 }
 
-module.exports = { validateToken }
+module.exports = { validateToken };
