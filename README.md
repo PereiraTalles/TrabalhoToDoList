@@ -61,9 +61,9 @@ O back-end utiliza **Node.js** e **MongoDB** para armazenar dados de forma segur
 |--------|------------------|-----------------------------------------------|--------------|
 | GET    | `/todo/list`       | Lista todas as tarefas do usuário autenticado. | Sim          |
 | POST   | `/todo/`           | Cria uma nova tarefa.                         | Sim          |
-| PUT    | `/todo/:id`        | Atualiza o título de uma tarefa.              | Sim          |
-| PUT    | `/todo/:id/done`   | Alterna o status de conclusão de uma tarefa.  | Sim          |
-| DELETE | `/todo/:id`        | Exclui uma tarefa específica.                 | Sim          |
+| PUT    | `/todo/:todoId`        | Atualiza o título de uma tarefa.              | Sim          |
+| PUT    | `/todo/:todoId/done`   | Alterna o status de conclusão de uma tarefa.  | Sim          |
+| DELETE | `/todo/:todoId`        | Exclui uma tarefa específica.                 | Sim          |
 | DELETE | `/todo/clear`      | Exclui todas as tarefas do usuário autenticado. | Sim          |
 
 ---
